@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luna y Estrellas</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="lienzo"></canvas>
+    <script type="text/javascript">
+        var lienzo = document.getElementById("lienzo");
+        var dibujo = lienzo.getContext("2d");
+
+        function ajustarCanvas() {
+            lienzo.width = window.innerWidth;
+            lienzo.height = window.innerHeight;
+            dibujarEscena();
+        }
+        window.addEventListener('resize', ajustarCanvas, false);
+        ajustarCanvas();
+
+        function dibujarEstrella(x, y) {
+            const tamaño = Math.random() * 2 + 1;
+            dibujo.fillStyle = "#ffffff";
+            dibujo.beginPath();
+            dibujo.arc(x, y, tamaño, 0, Math.PI * 2, true);
+            dibujo.closePath();
+            dibujo.fill();
+        }
+
+        function dibujarEstrellas() {
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * lienzo.width;
+                const y = Math.random() * lienzo.height;
+                dibujarEstrella(x, y);
+            }
+        }
+
+        function dibujarLuna() {
+            const centroX = lienzo.width / 2;
+            const centroY = lienzo.height / 2;
+            const radioLuna = Math.min(lienzo.width, lienzo.height) / 2.5;
+
+            const gradiente = dibujo.createRadialGradient(centroX, centroY, radioLuna / 2, centroX, centroY, radioLuna);
+            gradiente.addColorStop(0, "#c0c0c0");
+            gradiente.addColorStop(1, "#808080");
+
+            dibujo.fillStyle = gradiente;
+            dibujo.beginPath();
+            dibujo.arc(centroX, centroY, radioLuna, 0, Math.PI * 2, true);
+            dibujo.closePath();
+            dibujo.fill();
+
+            const cráteres = [
+                {x: centroX - radioLuna / 3, y: centroY + radioLuna / 2.5, radioExterno: radioLuna / 4.2, radioInterno: radioLuna / 4.5},
+                {x: centroX + radioLuna / 2, y: centroY - radioLuna / 2.5, radioExterno: radioLuna / 6, radioInterno: radioLuna / 6.5},
+                {x: centroX - radioLuna / 2.5, y: centroY - radioLuna / 3.3, radioExterno: radioLuna / 10, radioInterno: radioLuna / 11},
+                {x: centroX + radioLuna / 5, y: centroY + radioLuna / 1.6, radioExterno: radioLuna / 7.5, radioInterno: radioLuna / 8},
+                {x: centroX + radioLuna / 1.3, y: centroY, radioExterno: radioLuna / 5, radioInterno: radioLuna / 5.5},
+                {x: centroX - radioLuna / 2.2, y: centroY + radioLuna / 6.5, radioExterno: radioLuna / 8.5, radioInterno: radioLuna / 9},
+                {x: centroX - radioLuna / 9, y: centroY + radioLuna / 4.2, radioExterno: radioLuna / 12, radioInterno: radioLuna / 12.5},
+                {x: centroX + radioLuna / 6, y: centroY - radioLuna / 9, radioExterno: radioLuna / 6, radioInterno: radioLuna / 6.5},
+                {x: centroX + radioLuna / 3, y: centroY + radioLuna / 7, radioExterno: radioLuna / 15, radioInterno: radioLuna / 16},
+                {x: centroX - radioLuna / 6, y: centroY + radioLuna / 2.2, radioExterno: radioLuna / 20, radioInterno: radioLuna / 21},
+            ];
+
+            for (const cráter of cráteres) {
+                dibujo.fillStyle = "#808080";
+                dibujo.beginPath();
+                dibujo.arc(cráter.x, cráter.y, cráter.radioExterno, 0, Math.PI * 2, true);
+                dibujo.closePath();
+                dibujo.fill();
+
+                const gradienteCráter = dibujo.createRadialGradient(cráter.x, cráter.y, cráter.radioInterno, cráter.x, cráter.y, cráter.radioExterno);
+                gradienteCráter.addColorStop(0, "#c0c0c0");
+                gradienteCráter.addColorStop(1, "#808080");
+                
+                dibujo.fillStyle = gradienteCráter;
+                dibujo.beginPath();
+                dibujo.arc(cráter.x, cráter.y, cráter.radioInterno, 0, Math.PI * 2, true);
+                dibujo.closePath();
+                dibujo.fill();
+            }
+        }
+
+        function dibujarEscena() {
+            dibujo.fillStyle = "#151515";
+            dibujo.fillRect(0, 0, lienzo.width, lienzo.height);
+
+            dibujarEstrellas();
+            dibujarLuna();
+        }
+
+        dibujarEscena();
+    </script>
+</body>
+</html>
