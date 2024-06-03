@@ -13,18 +13,75 @@
         canvas {
             display: block;
         }
+        #contador {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: white;
+        }
+        .nave {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+        }
+        #navesilla {
+            right: 0;
+        }
+        #navesillamala {
+            left: 0;
+        }
     </style>
 </head>
 <body>
     <canvas id="lienzo"></canvas>
+    <img id="navesilla" class="nave" src="navesilla.png" style="top: 50%; transform: translateY(-50%);">
+    <img id="navesillamala" class="nave" src="navesillamala.png" style="top: 50%; transform: translateY(-50%);">
+    <div id="contador">0</div>
     <script type="text/javascript">
         var lienzo = document.getElementById("lienzo");
         var dibujo = lienzo.getContext("2d");
 
+        // Coordenadas iniciales de las naves
+        var xNave = window.innerWidth - 100; // Posición en la derecha
+        var yNave = window.innerHeight / 2 - 50; // Centrada verticalmente
+
+        var xNaveMala = 0; // Posición en la izquierda
+        var yNaveMala = window.innerHeight / 2 - 50; // Centrada verticalmente
+
+        var navesillaEliminada = false;
+        var navesillamalaEliminada = false;
+
+        // Array para almacenar los disparos
+        var disparos = [];
+        var disparosMala = [];
+
+        // Limitar la tasa de disparo
+        var puedeDisparar = true;
+        var puedeDispararMala = true;
+
+        // Contador de puntos
+        var puntos = 0;
+
+        // Función para dibujar el contador de puntos
+        function dibujarContador() {
+            var contadorElement = document.getElementById("contador");
+            contadorElement.textContent = puntos;
+        }
+
+        // Función para incrementar los puntos cada segundo
+        function incrementarPuntos() {
+            puntos += 50;
+            dibujarContador();
+        }
+
+        // Llamar a la función incrementarPuntos cada segundo
+        setInterval(incrementarPuntos, 1000);
+
         function ajustarCanvas() {
             lienzo.width = window.innerWidth;
             lienzo.height = window.innerHeight;
-            dibujarEscena();
+            dibujarFondo(); // Dibujar fondo una sola vez
         }
         window.addEventListener('resize', ajustarCanvas, false);
         ajustarCanvas();
@@ -61,7 +118,7 @@
             dibujo.closePath();
             dibujo.fill();
 
-            const cráteres = [
+            const crateres = [
                 {x: centroX - radioLuna / 3, y: centroY + radioLuna / 2.5, radioExterno: radioLuna / 4.2, radioInterno: radioLuna / 4.5},
                 {x: centroX + radioLuna / 2, y: centroY - radioLuna / 2.5, radioExterno: radioLuna / 6, radioInterno: radioLuna / 6.5},
                 {x: centroX - radioLuna / 2.5, y: centroY - radioLuna / 3.3, radioExterno: radioLuna / 10, radioInterno: radioLuna / 11},
@@ -74,34 +131,153 @@
                 {x: centroX - radioLuna / 6, y: centroY + radioLuna / 2.2, radioExterno: radioLuna / 20, radioInterno: radioLuna / 21},
             ];
 
-            for (const cráter of cráteres) {
+            for (const crater of crateres) {
                 dibujo.fillStyle = "#808080";
                 dibujo.beginPath();
-                dibujo.arc(cráter.x, cráter.y, cráter.radioExterno, 0, Math.PI * 2, true);
+                dibujo.arc(crater.x, crater.y, crater.radioExterno, 0, Math.PI * 2, true);
                 dibujo.closePath();
                 dibujo.fill();
 
-                const gradienteCráter = dibujo.createRadialGradient(cráter.x, cráter.y, cráter.radioInterno, cráter.x, cráter.y, cráter.radioExterno);
-                gradienteCráter.addColorStop(0, "#c0c0c0");
-                gradienteCráter.addColorStop(1, "#808080");
+                const gradienteCrater = dibujo.createRadialGradient(crater.x, crater.y, crater.radioInterno, crater.x, crater.y, crater.radioExterno);
+                gradienteCrater.addColorStop(0, "#c0c0c0");
+                gradienteCrater.addColorStop(1, "#808080");
                 
-                dibujo.fillStyle = gradienteCráter;
+                dibujo.fillStyle = gradienteCrater;
                 dibujo.beginPath();
-                dibujo.arc(cráter.x, cráter.y, cráter.radioInterno, 0, Math.PI * 2, true);
+                dibujo.arc(crater.x, crater.y, crater.radioInterno, 0, Math.PI * 2, true);
                 dibujo.closePath();
                 dibujo.fill();
             }
         }
 
-        function dibujarEscena() {
+        function dibujarFondo() {
             dibujo.fillStyle = "#151515";
             dibujo.fillRect(0, 0, lienzo.width, lienzo.height);
-
             dibujarEstrellas();
             dibujarLuna();
         }
 
-        dibujarEscena();
+        function dibujarNave() {
+            if (!navesillaEliminada) {
+                var nave = document.getElementById("navesilla");
+                nave.style.left = xNave + "px";
+                nave.style.top = yNave + "px";
+            }
+        }
+
+        function dibujarNaveMala() {
+            if (!navesillamalaEliminada) {
+                var naveMala = document.getElementById("navesillamala");
+                naveMala.style.left = xNaveMala + "px";
+                naveMala.style.top = yNaveMala + "px";
+            }
+        }
+
+        function moverNave(event) {
+            const velocidad = 20;
+            switch (event.key) {
+                case 'ArrowUp':
+                    yNave -= velocidad;
+                    break;
+                case 'ArrowDown':
+                    yNave += velocidad;
+                    break;
+                case 'ArrowLeft':
+                    xNave -= velocidad;
+                    break;
+                case 'ArrowRight':
+                    xNave += velocidad;
+                    break;
+                case 'w':
+                    yNaveMala -= velocidad;
+                    break;
+                case 's':
+                    yNaveMala += velocidad;
+                    break;
+                case 'a':
+                    xNaveMala -= velocidad;
+                    break;
+                case 'd':
+                    xNaveMala += velocidad;
+                    break;
+                case 'Enter':
+                    if (puedeDisparar) {
+                        disparar(xNave, yNave, 'izquierda');
+                        puedeDisparar = false;
+                        setTimeout(() => { puedeDisparar = true; }, 2000);
+                    }
+                    break;
+                case ' ':
+                    if (puedeDispararMala) {
+                        disparar(xNaveMala, yNaveMala, 'derecha');
+                        puedeDispararMala = false;
+                        setTimeout(() => { puedeDispararMala = true; }, 2000);
+                    }
+                    break;
+            }
+            dibujarNave();
+            dibujarNaveMala();
+        }
+
+        function disparar(x, y, direccion) {
+            if (direccion === 'derecha') {
+                disparosMala.push({ x: x + 100, y: y + 50, direccion: direccion });
+            } else {
+                disparos.push({ x: x, y: y + 50, direccion: direccion });
+            }
+        }
+
+        function dibujarDisparos() {
+            dibujo.fillStyle = "red";
+            for (let i = 0; i < disparos.length; i++) {
+                let disparo = disparos[i];
+                dibujo.fillRect(disparo.x, disparo.y, 10, 2);
+                disparo.x -= 10;
+
+                // Verificar colision con navesillamala
+                if (!navesillamalaEliminada && disparo.x <= xNaveMala + 100 && disparo.x >= xNaveMala && disparo.y >= yNaveMala && disparo.y <= yNaveMala + 100) {
+                    navesillamalaEliminada = true;
+                    document.getElementById("navesillamala").style.display = "none";
+                    disparos.splice(i, 1);
+                    i--;
+                }
+            }
+
+            dibujo.fillStyle = "blue";
+            for (let i = 0; i < disparosMala.length; i++) {
+                let disparo = disparosMala[i];
+                dibujo.fillRect(disparo.x, disparo.y, 10, 2);
+                disparo.x += 10;
+
+                // Verificar colision con navesilla
+                if (!navesillaEliminada && disparo.x >= xNave && disparo.x <= xNave + 100 && disparo.y >= yNave && disparo.y <= yNave + 100) {
+                    navesillaEliminada = true;
+                    document.getElementById("navesilla").style.display = "none";
+                    disparosMala.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function dibujarEscena() {
+            dibujarDisparos();
+            if (!navesillaEliminada) {
+                dibujarNave();
+            }
+            if (!navesillamalaEliminada) {
+                dibujarNaveMala();
+            }
+        }
+
+        function actualizarEscena() {
+            dibujarEscena();
+            requestAnimationFrame(actualizarEscena);
+        }
+
+        window.addEventListener('keydown', moverNave);
+        dibujarFondo(); // Dibujar fondo una sola vez
+        actualizarEscena();
+        dibujarContador();
     </script>
 </body>
 </html>
