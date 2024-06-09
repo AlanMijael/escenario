@@ -13,13 +13,6 @@
         canvas {
             display: block;
         }
-        #contador {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            color: white;
-        }
         .nave {
             position: absolute;
             width: 100px;
@@ -31,63 +24,63 @@
         #navesillamala {
             left: 0;
         }
+        #reinicio {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            padding-top: 100px;
+        }
     </style>
 </head>
 <body>
     <canvas id="lienzo"></canvas>
     <img id="navesilla" class="nave" src="navesilla.png" style="top: 50%; transform: translateY(-50%);">
     <img id="navesillamala" class="nave" src="navesillamala.png" style="top: 50%; transform: translateY(-50%);">
-    <div id="contador">0</div>
+    <div id="reinicio">
+        <p>¡Juego terminado! Presiona " r " para reiniciar.</p>
+        <img src="marcianito.gif">
+    </div>
     <script type="text/javascript">
         var lienzo = document.getElementById("lienzo");
         var dibujo = lienzo.getContext("2d");
+        
+        var xNave = window.innerWidth - 90; 
+        var yNave = window.innerHeight / 2 - 50; 
 
-        // Coordenadas iniciales de las naves
-        var xNave = window.innerWidth - 100; // Posición en la derecha
-        var yNave = window.innerHeight / 2 - 50; // Centrada verticalmente
-
-        var xNaveMala = 0; // Posición en la izquierda
-        var yNaveMala = window.innerHeight / 2 - 50; // Centrada verticalmente
+        var xNaveMala = 0; 
+        var yNaveMala = window.innerHeight / 2 - 50;
 
         var navesillaEliminada = false;
         var navesillamalaEliminada = false;
-
-        // Array para almacenar los disparos
+        var jugadorImpactado = false;
+        var enemigoImpactado = false;
+        
         var disparos = [];
         var disparosMala = [];
-
-        // Limitar la tasa de disparo
+        
+        var vidasNave = 3;
+        var vidasNaveMala = 3
+        
         var puedeDisparar = true;
         var puedeDispararMala = true;
-
-        // Contador de puntos
-        var puntos = 0;
-
-        // Función para dibujar el contador de puntos
-        function dibujarContador() {
-            var contadorElement = document.getElementById("contador");
-            contadorElement.textContent = puntos;
-        }
-
-        // Función para incrementar los puntos cada segundo
-        function incrementarPuntos() {
-            puntos += 50;
-            dibujarContador();
-        }
-
-        // Llamar a la función incrementarPuntos cada segundo
-        setInterval(incrementarPuntos, 1000);
 
         function ajustarCanvas() {
             lienzo.width = window.innerWidth;
             lienzo.height = window.innerHeight;
-            dibujarFondo(); // Dibujar fondo una sola vez
+            dibujarFondo(); 
         }
         window.addEventListener('resize', ajustarCanvas, false);
         ajustarCanvas();
 
         function dibujarEstrella(x, y) {
-            const tamaño = Math.random() * 2 + 1;
+            const tamaño = Math.random() * 1 + 1;
             dibujo.fillStyle = "#ffffff";
             dibujo.beginPath();
             dibujo.arc(x, y, tamaño, 0, Math.PI * 2, true);
@@ -96,12 +89,49 @@
         }
 
         function dibujarEstrellas() {
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 700; i++) {
+                
                 const x = Math.random() * lienzo.width;
                 const y = Math.random() * lienzo.height;
                 dibujarEstrella(x, y);
             }
         }
+        
+        
+        function dibujarEstrellaAzul(x, y) {
+    const tamaño = Math.random() * 1 + 1;
+    dibujo.fillStyle = "#5B8FB9"; // Azul
+    dibujo.beginPath();
+    dibujo.arc(x, y, tamaño, 0, Math.PI * 2, true);
+    dibujo.closePath();
+    dibujo.fill();
+}
+
+function dibujarEstrellasAzules() {
+    for (let i = 0; i < 400; i++) {
+        const x = Math.random() * lienzo.width;
+        const y = Math.random() * lienzo.height;
+        dibujarEstrellaAzul(x, y);
+    }
+}
+        
+        
+    function dibujaEstrellaMorada(x, y) {
+    const tamaño = Math.random() * 1 + 1;
+    dibujo.fillStyle = "rgba(150, 0, 255)"; // moradilla
+    dibujo.beginPath();
+    dibujo.arc(x, y, tamaño, 0, Math.PI * 2, true);
+    dibujo.closePath();
+    dibujo.fill();
+}
+
+function dibujaEstrellasMoradas() {
+    for (let i = 0; i < 300; i++) {
+        const x = Math.random() * lienzo.width;
+        const y = Math.random() * lienzo.height;
+        dibujaEstrellaMorada(x, y);
+    }
+}
 
         function dibujarLuna() {
             const centroX = lienzo.width / 2;
@@ -154,6 +184,8 @@
             dibujo.fillStyle = "#151515";
             dibujo.fillRect(0, 0, lienzo.width, lienzo.height);
             dibujarEstrellas();
+            dibujaEstrellasMoradas();
+            dibujarEstrellasAzules();
             dibujarLuna();
         }
 
@@ -173,8 +205,17 @@
             }
         }
 
+        function mostrarPantallaReinicio() {
+            document.getElementById("reinicio").style.display = "block";
+        }
+
+        function reiniciarJuego() {
+            window.location.reload();
+        }
+
         function moverNave(event) {
-            const velocidad = 20;
+            if (jugadorImpactado || enemigoImpactado) return; // Si el jugador o el enemigo fueron impactados, no pueden moverse ni disparar
+            const velocidad = 50;
             switch (event.key) {
                 case 'ArrowUp':
                     yNave -= velocidad;
@@ -204,14 +245,14 @@
                     if (puedeDisparar) {
                         disparar(xNave, yNave, 'izquierda');
                         puedeDisparar = false;
-                        setTimeout(() => { puedeDisparar = true; }, 2000);
+                        setTimeout(() => { puedeDisparar = true; }, 500);
                     }
                     break;
                 case ' ':
                     if (puedeDispararMala) {
                         disparar(xNaveMala, yNaveMala, 'derecha');
                         puedeDispararMala = false;
-                        setTimeout(() => { puedeDispararMala = true; }, 2000);
+                        setTimeout(() => { puedeDispararMala = true; }, 500);
                     }
                     break;
             }
@@ -221,40 +262,41 @@
 
         function disparar(x, y, direccion) {
             if (direccion === 'derecha') {
-                disparosMala.push({ x: x + 100, y: y + 50, direccion: direccion });
+                disparosMala.push({ x: x + 50, y: y + 0, direccion: direccion });
             } else {
-                disparos.push({ x: x, y: y + 50, direccion: direccion });
+                disparos.push({ x: x, y: y + 0, direccion: direccion });
             }
         }
 
         function dibujarDisparos() {
-            dibujo.fillStyle = "red";
+            dibujo.fillStyle = "white";
             for (let i = 0; i < disparos.length; i++) {
                 let disparo = disparos[i];
-                dibujo.fillRect(disparo.x, disparo.y, 10, 2);
-                disparo.x -= 10;
+                dibujo.fillRect(disparo.x, disparo.y, 5, 2);
+                disparo.x -= 50;
 
-                // Verificar colision con navesillamala
-                if (!navesillamalaEliminada && disparo.x <= xNaveMala + 100 && disparo.x >= xNaveMala && disparo.y >= yNaveMala && disparo.y <= yNaveMala + 100) {
+                if (!navesillamalaEliminada && disparo.x <= xNaveMala + 80 && disparo.x >= xNaveMala && disparo.y >= yNaveMala && disparo.y <= yNaveMala + 20) {
                     navesillamalaEliminada = true;
                     document.getElementById("navesillamala").style.display = "none";
                     disparos.splice(i, 1);
                     i--;
+                    enemigoImpactado = true; // El enemigo fue impactado, no puede disparar
                 }
             }
 
-            dibujo.fillStyle = "blue";
+            dibujo.fillStyle = "#050C9C";
             for (let i = 0; i < disparosMala.length; i++) {
                 let disparo = disparosMala[i];
-                dibujo.fillRect(disparo.x, disparo.y, 10, 2);
-                disparo.x += 10;
+                dibujo.fillRect(disparo.x, disparo.y, 5, 2);
+                disparo.x += 50;
 
                 // Verificar colision con navesilla
-                if (!navesillaEliminada && disparo.x >= xNave && disparo.x <= xNave + 100 && disparo.y >= yNave && disparo.y <= yNave + 100) {
+                if (!navesillaEliminada && disparo.x >= xNave && disparo.x <= xNave + 80 && disparo.y >= yNave && disparo.y <= yNave + 20) {
                     navesillaEliminada = true;
                     document.getElementById("navesilla").style.display = "none";
                     disparosMala.splice(i, 1);
                     i--;
+                    jugadorImpactado = true; // El jugador fue impactado, no puede disparar
                 }
             }
         }
@@ -271,13 +313,23 @@
 
         function actualizarEscena() {
             dibujarEscena();
+            if (navesillaEliminada || navesillamalaEliminada) {
+                mostrarPantallaReinicio();
+                document.addEventListener('keydown', reiniciarJuego);
+                return;
+            }
             requestAnimationFrame(actualizarEscena);
+        }
+        function reiniciarJuego(event) {
+            if (event.key === 'r') { // Solo reinicia si se presiona la tecla "r"
+                window.removeEventListener('keydown', reiniciarJuego); // Elimina el event listener para evitar múltiples reinicios
+                window.location.reload();
+            }
         }
 
         window.addEventListener('keydown', moverNave);
-        dibujarFondo(); // Dibujar fondo una sola vez
+        dibujarFondo();
         actualizarEscena();
-        dibujarContador();
     </script>
 </body>
 </html>
