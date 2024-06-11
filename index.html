@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>space destroyer</title>
+    <title>Space Destroyer</title>
     <link rel="icon" href="naveiconito.png">
     <style>
         body, html {
@@ -12,7 +12,7 @@
             overflow: hidden;
         }
         canvas {
-            display: block;
+            display: none;
         }
         .nave {
             position: absolute;
@@ -40,6 +40,35 @@
             text-align: center;
             padding-top: 100px;
         }
+        #comienzo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+        #comienzo img {
+            width: 500px;
+            height: 500px;
+            margin-bottom: 20px;
+        }
+        #comienzo input[type="button"] {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>    
@@ -50,12 +79,42 @@
         <p>¡Juego terminado! Presiona " r " para reiniciar.</p>
         <img src="marcianito.gif">
     </div>
-    <script type="text/javascript">
+    <div id="comienzo">
+        <p>¡Bienvenido!</p>
+        <img src="SPACE%20DETROYER.png">
+        <input type="button" value="¡Comenzar!" onclick="iniciarJuego()">
+    </div>
+      <script type="text/javascript">
+        var inicioMostrado = false;
+
+        function iniciarJuego() {
+            if (!inicioMostrado) {
+                document.getElementById("comienzo").style.display = "none"; 
+                document.getElementById("lienzo").style.display = "block"; 
+                window.addEventListener('keydown', moverNave); 
+                inicioMostrado = true; 
+            }
+        }
+                  function iniciarJuego() {
+            document.getElementById("comienzo").style.display = "none";
+            document.getElementById("lienzo").style.display = "block"; 
+            window.addEventListener('keydown', moverNave); 
+            localStorage.setItem('inicioMostrado', 'true'); 
+        }
+
+        var inicioMostrado = localStorage.getItem('inicioMostrado');
+        if (inicioMostrado) {
+            document.getElementById("comienzo").style.display = "none"; // Oculta la pantalla de inicio
+            document.getElementById("lienzo").style.display = "block"; // Muestra el lienzo del juego
+            window.addEventListener('keydown', moverNave); // Agrega el evento para mover la nave
+        }
+    
+
         var lienzo = document.getElementById("lienzo");
         var dibujo = lienzo.getContext("2d");
         
-        var xNave = window.innerWidth - 90; 
-        var yNave = window.innerHeight / 2 - 50; 
+        var xNave = window.innerWidth - 100; 
+        var yNave = window.innerHeight / 1.5 - 50; 
 
         var xNaveMala = 0; 
         var yNaveMala = window.innerHeight / 2 - 50;
@@ -70,6 +129,8 @@
         
         var puedeDisparar = true;
         var puedeDispararMala = true;
+        
+        
 
         function ajustarCanvas() {
             lienzo.width = window.innerWidth;
@@ -280,15 +341,15 @@ function dibujaEstrellasMoradas() {
             for (let i = 0; i < disparos.length; i++) {
                 let disparo = disparos[i];
                 dibujo.fillRect(disparo.x, disparo.y, 5, 2);
-                disparo.x -= 50;
+                disparo.x -= 100;
 
-                if (!navesillamalaEliminada && disparo.x <= xNaveMala + 80 && disparo.x >= xNaveMala && disparo.y >= yNaveMala && disparo.y <= yNaveMala + 20) {
-                    navesillamalaEliminada = true;
-                    document.getElementById("navesillamala").style.display = "none";
-                    disparos.splice(i, 1);
-                    i--;
-                    enemigoImpactado = true; // El enemigo fue impactado, no puede disparar
-                }
+              if (!navesillamalaEliminada && disparo.x <= xNaveMala + 100 && disparo.x >= xNaveMala && disparo.y >= yNaveMala && disparo.y <= yNaveMala + 50) {
+    navesillamalaEliminada = true;
+    document.getElementById("navesillamala").style.display = "none";
+    disparos.splice(i, 1);
+    i--;
+    enemigoImpactado = true;
+}
             }
 
             dibujo.fillStyle = "rgb(255,150,100)";
@@ -297,14 +358,14 @@ function dibujaEstrellasMoradas() {
                 dibujo.fillRect(disparo.x, disparo.y, 5, 2);
                 disparo.x += 50;
 
-                // Verificar colision con navesilla
-                if (!navesillaEliminada && disparo.x >= xNave && disparo.x <= xNave + 80 && disparo.y >= yNave && disparo.y <= yNave + 20) {
-                    navesillaEliminada = true;
-                    document.getElementById("navesilla").style.display = "none";
-                    disparosMala.splice(i, 1);
-                    i--;
-                    jugadorImpactado = true; 
-                }
+
+             if (!navesillaEliminada && disparo.x >= xNave && disparo.x <= xNave + 100 && disparo.y >= yNave && disparo.y <= yNave + 50) {
+    navesillaEliminada = true;
+    document.getElementById("navesilla").style.display = "none";
+    disparosMala.splice(i, 1);
+    i--;
+    jugadorImpactado = true; 
+}
             }
         }
 
