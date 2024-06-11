@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luna y Estrellas</title>
+    <title>space destroyer</title>
+    <link rel="icon" href="naveiconito.png">
     <style>
         body, html {
             margin: 0;
@@ -20,9 +21,11 @@
         }
         #navesilla {
             right: 0;
+            top: 0;
         }
         #navesillamala {
             left: 0;
+            bottom: 0;
         }
         #reinicio {
             display: none;
@@ -39,7 +42,7 @@
         }
     </style>
 </head>
-<body>
+<body>    
     <canvas id="lienzo"></canvas>
     <img id="navesilla" class="nave" src="navesilla.png" style="top: 50%; transform: translateY(-50%);">
     <img id="navesillamala" class="nave" src="navesillamala.png" style="top: 50%; transform: translateY(-50%);">
@@ -65,9 +68,6 @@
         var disparos = [];
         var disparosMala = [];
         
-        var vidasNave = 3;
-        var vidasNaveMala = 3
-        
         var puedeDisparar = true;
         var puedeDispararMala = true;
 
@@ -90,7 +90,6 @@
 
         function dibujarEstrellas() {
             for (let i = 0; i < 700; i++) {
-                
                 const x = Math.random() * lienzo.width;
                 const y = Math.random() * lienzo.height;
                 dibujarEstrella(x, y);
@@ -214,32 +213,40 @@ function dibujaEstrellasMoradas() {
         }
 
         function moverNave(event) {
-            if (jugadorImpactado || enemigoImpactado) return; // Si el jugador o el enemigo fueron impactados, no pueden moverse ni disparar
+            if (jugadorImpactado || enemigoImpactado) return; 
             const velocidad = 50;
             switch (event.key) {
                 case 'ArrowUp':
-                    yNave -= velocidad;
+                    if (yNave > 0) 
+                        yNave -= velocidad;
                     break;
                 case 'ArrowDown':
-                    yNave += velocidad;
+                    if (yNave < lienzo.height - 100) 
+                        yNave += velocidad;
                     break;
                 case 'ArrowLeft':
-                    xNave -= velocidad;
-                    break;
+    if (xNave > lienzo.width / 2)
+        xNave -= velocidad;
+    break;
                 case 'ArrowRight':
-                    xNave += velocidad;
+                    if (xNave < lienzo.width - 100)
+                        xNave += velocidad;
                     break;
                 case 'w':
-                    yNaveMala -= velocidad;
+                    if (yNaveMala > 0)
+                        yNaveMala -= velocidad;
                     break;
                 case 's':
-                    yNaveMala += velocidad;
+                    if (yNaveMala < lienzo.height - 100) 
+                        yNaveMala += velocidad;
                     break;
                 case 'a':
-                    xNaveMala -= velocidad;
+                    if (xNaveMala > 0) 
+                        xNaveMala -= velocidad;
                     break;
                 case 'd':
-                    xNaveMala += velocidad;
+                    if (xNaveMala < lienzo.width - 1000) 
+                        xNaveMala += velocidad;
                     break;
                 case 'Enter':
                     if (puedeDisparar) {
@@ -269,7 +276,7 @@ function dibujaEstrellasMoradas() {
         }
 
         function dibujarDisparos() {
-            dibujo.fillStyle = "white";
+            dibujo.fillStyle = "rgb(100,255,50)";
             for (let i = 0; i < disparos.length; i++) {
                 let disparo = disparos[i];
                 dibujo.fillRect(disparo.x, disparo.y, 5, 2);
@@ -284,7 +291,7 @@ function dibujaEstrellasMoradas() {
                 }
             }
 
-            dibujo.fillStyle = "#050C9C";
+            dibujo.fillStyle = "rgb(255,150,100)";
             for (let i = 0; i < disparosMala.length; i++) {
                 let disparo = disparosMala[i];
                 dibujo.fillRect(disparo.x, disparo.y, 5, 2);
@@ -296,7 +303,7 @@ function dibujaEstrellasMoradas() {
                     document.getElementById("navesilla").style.display = "none";
                     disparosMala.splice(i, 1);
                     i--;
-                    jugadorImpactado = true; // El jugador fue impactado, no puede disparar
+                    jugadorImpactado = true; 
                 }
             }
         }
@@ -321,7 +328,7 @@ function dibujaEstrellasMoradas() {
             requestAnimationFrame(actualizarEscena);
         }
         function reiniciarJuego(event) {
-            if (event.key === 'r') { // Solo reinicia si se presiona la tecla "r"
+            if (event.key === 'r') { 
                 window.removeEventListener('keydown', reiniciarJuego); // Elimina el event listener para evitar múltiples reinicios
                 window.location.reload();
             }
